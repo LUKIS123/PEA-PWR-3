@@ -20,8 +20,13 @@ private:
     int **matrix = nullptr;
     int matrixSize;
     int populationSize;
-    double mutationFactor = 0.8;
-    double crossFactor = 0.01;
+    double mutationFactor = 0.01;
+    double crossFactor = 0.8;
+
+    int tournamentParticipants;
+    int eliteCount = 0;
+    double eliteFactor = 0.05;
+    std::list<GASubject> currentElite;
 
     std::vector<GASubject> currentPopulation;
     int currentPopulationTotalCost = 0;
@@ -29,20 +34,23 @@ private:
     int nextPopulationTotalCost = 0;
 
     int timeoutSeconds = 120;
-    int bestPathCost = INT_MAX;
     long long int startQPC;
 
 public:
     long long int bestCostFoundQPC;
-    const std::vector<int> bestPath;
+    std::vector<int> bestPath;
+    int bestCost = INT_MAX;
+
+    int greedyAlgorithmCost;
 
     // TESTING
     bool testing = false;
     std::vector<double> timestamps;
     std::vector<int> solutionProgressionPoints;
     //
-    int greedyAlgorithmCost;
 
+
+    void clearMemory();
 
     void displayLatestResults();
 
@@ -56,6 +64,12 @@ public:
     void solveTSP();
 
     void initializePopulation();
+
+    std::pair<GASubject, GASubject> tournamentSelection();
+
+    GASubject crossSubjects(GASubject first, GASubject second);
+
+    void mutate(GASubject &subject);
 };
 
 

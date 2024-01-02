@@ -6,9 +6,9 @@
 
 class RandomDataGenerator {
 public:
-    static double generateRandomDouble(int from, int to);
+    static double generateRandomDouble(double from, double to);
 
-    static int generateVertexInRange(int from, int to);
+    static int generateRandomIntInRange(int from, int to);
 };
 
 

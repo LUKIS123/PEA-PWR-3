@@ -1,10 +1,8 @@
 #include "GASubject.h"
 
+GASubject::GASubject() = default;
+
 GASubject::GASubject(const std::vector<int> &path) : path(path) {
-}
-
-GASubject::GASubject(const std::vector<int> &firstParent, const std::vector<int> &secondParent) {
-
 }
 
 void GASubject::setPathCost(int **matrix) {
@@ -20,5 +18,5 @@ void GASubject::setPathCost(int **matrix) {
 }
 
 void GASubject::setFitness(int populationTotalCosts, int populationSize) {
-
+    fitness = (1.0 - pathCost / populationTotalCosts) * populationSize;
 }

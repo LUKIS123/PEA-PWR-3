@@ -6,6 +6,8 @@
 
 class GASubject {
 public:
+    GASubject();
+
     ~GASubject() = default;
 
     std::vector<int> path;
@@ -13,8 +15,6 @@ public:
     double fitness = 0.0;
 
     explicit GASubject(const std::vector<int> &path);
-
-    GASubject(const std::vector<int> &firstParent, const std::vector<int> &secondParent);
 
     void setPathCost(int **matrix);
 
