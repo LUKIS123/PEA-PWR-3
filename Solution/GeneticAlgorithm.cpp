@@ -28,7 +28,7 @@ void
 GeneticAlgorithm::mainFun(int **matrix, int matrixSize, int populationSize, double mutationFactor,
                           double crossFactor, long long int startQPC, int timeout) {
     clearMemory();
-    
+
     this->matrix = matrix;
     this->matrixSize = matrixSize;
     this->populationSize = populationSize;
@@ -193,7 +193,7 @@ std::pair<GASubject, GASubject> GeneticAlgorithm::tournamentSelection() {
     return std::make_pair(first, second);
 }
 
-GASubject GeneticAlgorithm::crossSubjects(GASubject first, GASubject second) {
+GASubject GeneticAlgorithm::crossSubjects(GASubject &first, GASubject &second) {
 
 }
 

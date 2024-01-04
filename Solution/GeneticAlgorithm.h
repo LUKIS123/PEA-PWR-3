@@ -67,7 +67,7 @@ public:
 
     std::pair<GASubject, GASubject> tournamentSelection();
 
-    GASubject crossSubjects(GASubject first, GASubject second);
+    GASubject crossSubjects(GASubject &first, GASubject &second);
 
     void mutate(GASubject &subject);
 };
