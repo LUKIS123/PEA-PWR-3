@@ -59,11 +59,6 @@ CrossoverMethods::OrderCrossover(const std::vector<int> &first, const std::vecto
 // Metoda implementujaca metode krzyzowania Edge Crossover
 std::vector<int>
 CrossoverMethods::EdgeCrossover(const std::vector<int> &first, const std::vector<int> &second, int matrixSize) {
-//    std::vector<int> values = first;
-//    values.pop_back();
-//    std::vector<int> parent2 = second;
-//    parent2.pop_back();
-
     std::vector<std::list<std::pair<int, bool>>> edgeTab(matrixSize);
 
     edgeTab[first[0]].emplace_back(first[matrixSize - 1], false);
@@ -141,8 +136,6 @@ CrossoverMethods::EdgeCrossover(const std::vector<int> &first, const std::vector
         itLastElemSecondSecond->second = true;
     }
 
-    std::list<int> offspring(matrixSize);
-
     std::vector<int> vertexes = first;
     vertexes.pop_back();
     std::random_device rdev;
@@ -150,78 +143,21 @@ CrossoverMethods::EdgeCrossover(const std::vector<int> &first, const std::vector
     std::shuffle(std::begin(vertexes), std::end(vertexes), gen);
 
     std::list<int> remaining(vertexes.begin(), vertexes.end());
+
+    // 1. v=losowy wierzchołek
     int v = remaining.back();
     remaining.pop_back();
 
-//    for (int i = 0; i < matrixSize; ++i) {
-//        for (auto &list: edgeTab) {
-//            list.remove_if([&v](std::pair<int, bool> &element) { return (element.first == v); });
-//        }
-//        auto itRepeated = std::find_if(edgeTab[v].begin(), edgeTab[v].end(),
-//                                       [](const std::pair<int, bool> &element) {
-//                                           return element.second;
-//                                       });
-//        if (itRepeated == edgeTab[v].end()) {
-//
-//            if (!edgeTab[v].empty()) {
-//
-//                std::pair<int, int> shortestEdgeListVertexCount(0, INT_MAX);
-//                for (const auto &item: edgeTab[v]) {
-//                    if (edgeTab[item.first].size() <= shortestEdgeListVertexCount.second) {
-//                        shortestEdgeListVertexCount = std::make_pair(item.first, edgeTab[item.first].size());
-//                    }
-//                }
-//                offspring.push_back(v);
-//                v = shortestEdgeListVertexCount.first;
-//                continue;
-//
-//            } else {
-//
-//                itRepeated = std::find_if(edgeTab[offspring.front()].begin(), edgeTab[offspring.front()].end(),
-//                                          [](const std::pair<int, bool> &element) {
-//                                              return element.second;
-//                                          });
-//                if (itRepeated == edgeTab[offspring.front()].end()) {
-//                    std::pair<int, int> shortestEdgeListVertexCount(0, INT_MAX);
-//                    for (const auto &item: edgeTab[offspring.front()]) {
-//                        if (edgeTab[item.first].size() <= shortestEdgeListVertexCount.second) {
-//                            shortestEdgeListVertexCount = std::make_pair(item.first, edgeTab[item.first].size());
-//                        }
-//                    }
-//                    offspring.push_front(v);
-//                    v = shortestEdgeListVertexCount.first;
-//                    continue;
-//
-//                } else {
-//                    // todo
-//                    // zamiana kierunku????
-//                    offspring.push_front(v);
-//                    v = itRepeated->first;
-//                    continue;
-//                }
-//
-//                // pkt 5
-//                offspring.push_back(random);
-//
-//            }
-//
-//        } else {
-//            offspring.push_back(v);
-//            v = itRepeated->first;
-//            continue;
-//        }
-//    }
-//////////////////////////////////////////////////////////////////////////////////////////////////////
+    std::list<int> offspring;
     bool direction = true;
-    while (offspring.size() != matrixSize) {
-        //2. usuń z tablicy krawędzi wszystkie odniesienia do v
+    while (!remaining.empty()) {
+        // 2. Usuń z tablicy krawędzi wszystkie odniesienia do v
         for (auto &list: edgeTab) {
             list.remove_if([&v](std::pair<int, bool> &element) { return (element.first == v); });
         }
 
-        //3. Zbadaj listę krawędzi dla v.
+        // 3. Zbadaj listę krawędzi dla v.
         auto result = tryAddBestNeighbor(v, direction, offspring, edgeTab);
-        // punkt 6 -> dodano wierzcholek
         if (result.first) {
             removeRemaining(v, remaining);
             v = result.second;
@@ -237,7 +173,7 @@ CrossoverMethods::EdgeCrossover(const std::vector<int> &first, const std::vector
             continue;
         }
 
-        //5. Jeżeli pkt. 4 się nie udał
+        // 5. Jeżeli pkt. 4 się nie udał
         addOffspring(offspring, v, direction);
         direction = true;
         v = remaining.back();
@@ -280,7 +216,6 @@ std::pair<bool, int> CrossoverMethods::tryAddBestNeighbor(int vertex, bool direc
     if (itRepeated == edgeTab[vertex].end()) {
 
         if (!edgeTab[vertex].empty()) {
-
             std::pair<int, int> shortestEdgeListVertexCount(-1, INT_MAX);
             for (const auto &item: edgeTab[vertex]) {
                 if (edgeTab[item.first].size() <= shortestEdgeListVertexCount.second) {
