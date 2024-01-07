@@ -25,9 +25,6 @@ private:
     double crossFactor = 0.8;
 
     int tournamentParticipants;
-    int eliteCount = 0;
-    double eliteFactor = 0.05;
-    std::list<GASubject> currentElite;
 
     std::vector<GASubject> currentPopulation;
     std::vector<GASubject> nextPopulation;
@@ -64,11 +61,13 @@ public:
 
     void initializePopulation();
 
-    std::pair<GASubject, GASubject> tournamentSelection();
+    std::pair<GASubject, GASubject> tournamentSelection(int randomIndex);
 
-    GASubject crossSubjects(GASubject &first, GASubject &second) const;
+    std::pair<GASubject, GASubject> crossSubjects(GASubject &first, GASubject &second) const;
 
     void mutate(GASubject &subject) const;
+
+    void insertOffspring(GASubject &subject);
 };
 
 

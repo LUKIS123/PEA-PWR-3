@@ -57,7 +57,7 @@ CrossoverMethods::orderCrossover(const std::vector<int> &first, const std::vecto
 }
 
 // Metoda implementujaca metode krzyzowania Edge Crossover
-std::vector<int>
+std::pair<std::vector<int>, std::vector<int>>
 CrossoverMethods::edgeCrossover(const std::vector<int> &first, const std::vector<int> &second, int matrixSize) {
     std::vector<std::list<std::pair<int, bool>>> edgeTab(matrixSize);
 
@@ -136,6 +136,8 @@ CrossoverMethods::edgeCrossover(const std::vector<int> &first, const std::vector
         itLastElemSecondSecond->second = true;
     }
 
+    std::vector<std::list<std::pair<int, bool>>> edgeTabSecond = edgeTab;
+
     std::vector<int> vertexes = first;
     vertexes.pop_back();
     std::random_device rdev;
@@ -180,10 +182,57 @@ CrossoverMethods::edgeCrossover(const std::vector<int> &first, const std::vector
         remaining.pop_back();
     }
 
+/////////////////////////////////////////////////////////////////////////////////////// todo
+    vertexes = first;
+    vertexes.pop_back();
+    std::shuffle(std::begin(vertexes), std::end(vertexes), gen);
+    std::list<int> remaining2(vertexes.begin(), vertexes.end());
+
+    // 1. v=losowy wierzchołek
+    v = remaining.back();
+    remaining.pop_back();
+
+    std::list<int> offspring2;
+    bool direction2 = true;
+    while (!remaining.empty()) {
+        // 2. Usuń z tablicy krawędzi wszystkie odniesienia do v
+        for (auto &list: edgeTab) {
+            list.remove_if([&v](std::pair<int, bool> &element) { return (element.first == v); });
+        }
+
+        // 3. Zbadaj listę krawędzi dla v.
+        auto result = tryAddBestNeighbor(v, direction, offspring, edgeTab);
+        if (result.first) {
+            removeRemaining(v, remaining);
+            v = result.second;
+            continue;
+        }
+
+        // 4. Jeżeli lista krawędzi v jest pusta spróbuj wykonać pkt 3. dla drugiego końcaciągu
+        auto otherEndResult = tryAddBestNeighbor(offspring.front(), direction, offspring, edgeTab);
+        if (otherEndResult.first) {
+            removeRemaining(v, remaining);
+            direction = false;
+            v = otherEndResult.second;
+            continue;
+        }
+
+        // 5. Jeżeli pkt. 4 się nie udał
+        addOffspring(offspring, v, direction);
+        direction = true;
+        v = remaining.back();
+        remaining.pop_back();
+    }
+
     std::vector<int> result{std::make_move_iterator(std::begin(offspring)),
                             std::make_move_iterator(std::end(offspring))};
     result.push_back(result[0]);
-    return result;
+
+    std::vector<int> result2{std::make_move_iterator(std::begin(offspring2)),
+                             std::make_move_iterator(std::end(offspring2))};
+    result2.push_back(result[0]);
+
+    return std::make_pair(result, result2);
 }
 
 // Funkcja pomocnicza sluzaca znalezieniu wierzcholka w liscie sasiedztwa

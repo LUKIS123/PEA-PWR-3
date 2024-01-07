@@ -14,7 +14,7 @@ public:
     static std::pair<std::vector<int>, std::vector<int>>
     orderCrossover(const std::vector<int> &first, const std::vector<int> &second, int matrixSize);
 
-    static std::vector<int>
+    static std::pair<std::vector<int>, std::vector<int>>
     edgeCrossover(const std::vector<int> &first, const std::vector<int> &second, int matrixSize);
 
     static std::_List_iterator<std::pair<int, bool>>

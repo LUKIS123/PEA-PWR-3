@@ -30,7 +30,7 @@ private:
     int timeoutSeconds = 120;
 
     // GENETIC ALGORITHM PARAMS
-    int populationSize = 500;
+    int populationSize = 1000;
     double mutationFactor = 0.01;
     double crossFactor = 0.8;
 
