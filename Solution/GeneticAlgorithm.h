@@ -14,6 +14,7 @@
 #include "../MeasureTime/Timer.h"
 #include "../Utils/GreedyAlgorithm.h"
 #include "../Utils/GASubject.h"
+#include "../Utils/CrossoverMethods.h"
 
 class GeneticAlgorithm {
 private:
@@ -29,9 +30,7 @@ private:
     std::list<GASubject> currentElite;
 
     std::vector<GASubject> currentPopulation;
-    int currentPopulationTotalCost = 0;
     std::vector<GASubject> nextPopulation;
-    int nextPopulationTotalCost = 0;
 
     int timeoutSeconds = 120;
     long long int startQPC;
@@ -67,9 +66,9 @@ public:
 
     std::pair<GASubject, GASubject> tournamentSelection();
 
-    GASubject crossSubjects(GASubject &first, GASubject &second);
+    GASubject crossSubjects(GASubject &first, GASubject &second) const;
 
-    void mutate(GASubject &subject);
+    void mutate(GASubject &subject) const;
 };
 
 

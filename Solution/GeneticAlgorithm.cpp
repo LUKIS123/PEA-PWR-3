@@ -15,8 +15,9 @@ void GeneticAlgorithm::clearMemory() {
 }
 
 void GeneticAlgorithm::displayLatestResults() {
+    std::cout << "GREEDY: " << greedyAlgorithmCost << std::endl;
     std::cout << "ALGORITHM RESULTS:" << std::endl;
-    std::cout << "Path: ";
+    std::cout << "Best Path: ";
     for (const auto &item: bestPath) {
         std::cout << item << ", ";
     }
@@ -58,63 +59,63 @@ void GeneticAlgorithm::solveTSP() {
 
     // Inicjalizacja populacji poczatkowej
     initializePopulation();
+
     for (int iteration = 0; true; ++iteration) {
+
         // Przerwanie algorytmu jesli osiagnieto kryterium stopu
         if ((breakAlgoTimePoint - std::chrono::system_clock::now()).count() < 0) {
             break;
         }
 
-        currentElite.clear();
-        GASubject bestSubject;
-        for (int j = 0; j < matrixSize; ++j) {
-            currentPopulation[j].setFitness(currentPopulationTotalCost, populationSize);
-            if (currentPopulation[j].fitness >= 1.0) {
-                // Kazdy osobnik otrzymuje tyle kopii w nowej populacji, ile wynosi jego wspolczynnik fitness
-                for (int k = 0; k < currentPopulation[j].fitness; ++k) {
-                    nextPopulation.push_back(currentPopulation[j]);
-                }
-            }
-
-            if (currentPopulation[j].pathCost <= bestSubject.pathCost) {
-                bestSubject = currentPopulation[j];
-            }
-            if (currentPopulation[j].pathCost <= currentElite.back().pathCost || currentElite.size() < eliteCount) {
-                currentElite.push_front(currentPopulation[j]);
-                if (currentElite.size() > eliteCount) {
-                    currentElite.pop_back();
-                }
-            }
-            currentElite.sort([](const GASubject &a, const GASubject &b) { return a.pathCost < b.pathCost; });
-        }
-        // Zapewnienie przetrwania najlepszym osobnikom z poprzedniej populacji
-        if (nextPopulation.size() < eliteCount) {
-            std::copy(std::begin(currentElite), std::end(currentElite), std::back_inserter(nextPopulation));
-        }
-        bestPath = bestSubject.path;
-        bestCost = bestSubject.pathCost;
-
-
-        // todo: reszta wybierana turniejami
-        /// wybieramy rodzicow poprzez turnieje ( rozmiar k uzaleznic od wielkosci populacji)
-        /// nastepnie dwoch rodzicow z turnieju crossover
-        /// nastepnie mutacja
-        /// nastepnie dodawaj do nextPopulation i powtarzaj proces do ktorego nextPop.size == populationSize
-        // UWAGA W CROSSS UWZGLEDNIC cross_factor! nie wszystkie beda sie crossowac
-        // -> turniej jesli wpadnie cross to krzyzuje z drygum najlepszym , jesli nie to do nexta idzie najlepszy
+//        currentElite.clear();
+//        for (int j = 0; j < matrixSize; ++j) {
+//
+//            if (currentElite.size() < eliteCount || currentPopulation[j].pathCost <= currentElite.back().pathCost) {
+//                currentElite.push_front(currentPopulation[j]);
+//                if (currentElite.size() > eliteCount) {
+//                    currentElite.pop_back();
+//                }
+//                currentElite.sort([](const GASubject &a, const GASubject &b) {
+//                    return a.pathCost < b.pathCost;
+//                });
+//            }
+//
+//            if (currentPopulation[j].pathCost < bestCost) {
+//                bestPath = currentPopulation[j].path;
+//                bestCost = currentPopulation[j].pathCost;
+//                bestCostFoundQPC = Timer::read_QPC();
+//            }
+//
+//        }
+//
+//        // Zapewnienie przetrwania najlepszym osobnikom z poprzedniej populacji
+//        std::copy(std::begin(currentElite), std::end(currentElite), std::back_inserter(nextPopulation));
 
         while (nextPopulation.size() != populationSize) {
             auto winners = tournamentSelection();
+
             if (dist(gen) < crossFactor) {
+                // Krzyzowanie
                 auto offspring = crossSubjects(winners.first, winners.second);
                 // Mutacja
                 if (dist(gen) < mutationFactor) {
                     mutate(offspring);
                 }
                 offspring.setPathCost(matrix);
+
+
+                if (offspring.pathCost < bestCost) {
+                    bestPath = offspring.path;
+                    bestCost = offspring.pathCost;
+                    bestCostFoundQPC = Timer::read_QPC();
+                }
+
                 nextPopulation.push_back(offspring);
+
             } else {
                 nextPopulation.push_back(winners.first);
             }
+
         }
 
         // Zastepowanie obecnej populacji nowa populacja
@@ -129,12 +130,12 @@ void GeneticAlgorithm::initializePopulation() {
     auto pathCostPair = GreedyAlgorithm::getBestGreedyAlgorithmResult(matrix, matrixSize);
     greedyAlgorithmCost = pathCostPair.second;
 
-    int totalPopulationCost = 0;
-
     auto greedy = GASubject(pathCostPair.first);
-    greedy.setPathCost(matrix);
-    totalPopulationCost += greedy.pathCost;
     currentPopulation.push_back(greedy);
+    greedy.setPathCost(matrix);
+
+    std::random_device rdev;
+    std::mt19937 gen(rdev());
 
     for (int i = 1; i < populationSize; ++i) {
         std::vector<int> path(pathCostPair.first);
@@ -150,8 +151,10 @@ void GeneticAlgorithm::initializePopulation() {
 
         if (randomPerturbationOption == 0) {
             std::swap(path[v1], path[v2]);
+
         } else if (randomPerturbationOption == 1) {
             std::reverse(path.begin() + v1, path.begin() + v2);
+
         } else {
             v1 = RandomDataGenerator::generateRandomIntInRange(0, matrixSize - 1);
             do {
@@ -160,43 +163,64 @@ void GeneticAlgorithm::initializePopulation() {
             if (v1 > v2) {
                 std::swap(v1, v2);
             }
-            std::random_device rdev;
-            std::mt19937 gen(rdev());
             std::shuffle(path.begin() + v1, path.begin() + v2, gen);
         }
 
         path.push_back(path[0]);
         auto subject = GASubject(path);
         subject.setPathCost(matrix);
-        totalPopulationCost += subject.pathCost;
+
+        if (subject.pathCost < bestCost) {
+            bestPath = subject.path;
+            bestCost = subject.pathCost;
+            bestCostFoundQPC = Timer::read_QPC();
+        }
 
         currentPopulation.push_back(subject);
     }
-    currentPopulationTotalCost = totalPopulationCost;
 }
 
 std::pair<GASubject, GASubject> GeneticAlgorithm::tournamentSelection() {
     int randomIndex = RandomDataGenerator::generateRandomIntInRange(0, matrixSize - 1);
-    int limit = randomIndex + (tournamentParticipants * RandomDataGenerator::generateRandomDouble(0.75, 1.25));
 
-    GASubject first = currentPopulation[randomIndex++ % (matrixSize - 1)];
-    GASubject second = currentPopulation[randomIndex++ % (matrixSize - 1)];
-
+    GASubject a = currentPopulation[randomIndex++ % (matrixSize - 1)];
+    int limit = randomIndex + tournamentParticipants;
     for (; randomIndex < limit; ++randomIndex) {
-        int index = randomIndex % (matrixSize - 1);
-        if (currentPopulation[index].pathCost <= first.pathCost) {
-            first = currentPopulation[index];
-        } else if (currentPopulation[index].pathCost <= second.pathCost) {
-            second = currentPopulation[index];
+        int i = randomIndex % (matrixSize - 1);
+        if (currentPopulation[i].pathCost <= a.pathCost) {
+            a = currentPopulation[i];
         }
     }
-    return std::make_pair(first, second);
+
+    GASubject b = currentPopulation[randomIndex++ % (matrixSize - 1)];
+    int limit2 = limit + tournamentParticipants;
+    for (; randomIndex < limit2; ++randomIndex) {
+        int i = randomIndex % (matrixSize - 1);
+        if (currentPopulation[i].pathCost <= b.pathCost) {
+            b = currentPopulation[i];
+        }
+    }
+
+    if (a.pathCost > b.pathCost) {
+        return std::make_pair(b, a);
+    }
+    return std::make_pair(a, b);
 }
 
-GASubject GeneticAlgorithm::crossSubjects(GASubject &first, GASubject &second) {
-
+GASubject GeneticAlgorithm::crossSubjects(GASubject &first, GASubject &second) const {
+    auto descendant = CrossoverMethods::orderCrossover(first.path, second.path, matrixSize);
+    auto subject = GASubject(descendant.first);
+    return subject;
 }
 
-void GeneticAlgorithm::mutate(GASubject &subject) {
+void GeneticAlgorithm::mutate(GASubject &subject) const {
+    subject.path.pop_back();
+    int v1 = RandomDataGenerator::generateRandomIntInRange(0, matrixSize - 1);
+    int v2;
+    do {
+        v2 = RandomDataGenerator::generateRandomIntInRange(0, matrixSize - 1);
+    } while (v2 == v1);
 
+    std::swap(subject.path[v1], subject.path[v2]);
+    subject.path.push_back(subject.path[0]);
 }

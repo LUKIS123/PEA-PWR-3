@@ -16,7 +16,3 @@ void GASubject::setPathCost(int **matrix) {
     }
     pathCost = tmpCost;
 }
-
-void GASubject::setFitness(int populationTotalCosts, int populationSize) {
-    fitness = (1.0 - pathCost / populationTotalCosts) * populationSize;
-}

@@ -12,10 +12,10 @@
 class CrossoverMethods {
 public:
     static std::pair<std::vector<int>, std::vector<int>>
-    OrderCrossover(const std::vector<int> &first, const std::vector<int> &second, int matrixSize);
+    orderCrossover(const std::vector<int> &first, const std::vector<int> &second, int matrixSize);
 
     static std::vector<int>
-    EdgeCrossover(const std::vector<int> &first, const std::vector<int> &second, int matrixSize);
+    edgeCrossover(const std::vector<int> &first, const std::vector<int> &second, int matrixSize);
 
     static std::_List_iterator<std::pair<int, bool>>
     findElementOfEdgeList(std::list<std::pair<int, bool>> &edgeList, int value);

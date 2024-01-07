@@ -3,7 +3,7 @@
 
 // Metoda implementujaca metode krzyzowania Order Crossover
 std::pair<std::vector<int>, std::vector<int>>
-CrossoverMethods::OrderCrossover(const std::vector<int> &first, const std::vector<int> &second, int matrixSize) {
+CrossoverMethods::orderCrossover(const std::vector<int> &first, const std::vector<int> &second, int matrixSize) {
     std::vector<int> parent1 = first;
     parent1.pop_back();
     std::vector<int> parent2 = second;
@@ -58,7 +58,7 @@ CrossoverMethods::OrderCrossover(const std::vector<int> &first, const std::vecto
 
 // Metoda implementujaca metode krzyzowania Edge Crossover
 std::vector<int>
-CrossoverMethods::EdgeCrossover(const std::vector<int> &first, const std::vector<int> &second, int matrixSize) {
+CrossoverMethods::edgeCrossover(const std::vector<int> &first, const std::vector<int> &second, int matrixSize) {
     std::vector<std::list<std::pair<int, bool>>> edgeTab(matrixSize);
 
     edgeTab[first[0]].emplace_back(first[matrixSize - 1], false);
