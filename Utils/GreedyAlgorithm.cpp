@@ -38,9 +38,10 @@ std::pair<std::vector<int>, int> GreedyAlgorithm::solveGreedyAlgorithm(int **mat
 }
 
 // Funkcja wykonujaca algorytm zachlanny sprawdzajac wszystkie wierzcholki i zwracajaca najlepszy rezultat
-std::pair<std::vector<int>, int> GreedyAlgorithm::getBestGreedyAlgorithmResult(int **matrix, int matrixSize) {
-    int bestCost = INT_MAX;
-    std::vector<int> bestPath;
+std::vector<std::pair<std::vector<int>, int>>
+GreedyAlgorithm::getBestGreedyAlgorithmResult(int **matrix, int matrixSize) {
+    bestCost = INT_MAX;
+    std::vector<std::pair<std::vector<int>, int>> pathCostVector;
 
     for (int i = 0; i < matrixSize; i++) {
         auto solution = solveGreedyAlgorithm(matrix, matrixSize, i);
@@ -48,6 +49,7 @@ std::pair<std::vector<int>, int> GreedyAlgorithm::getBestGreedyAlgorithmResult(i
             bestPath = solution.first;
             bestCost = solution.second;
         }
+        pathCostVector.push_back(solution);
     }
-    return std::make_pair(bestPath, bestCost);
+    return pathCostVector;
 }

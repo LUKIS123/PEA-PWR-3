@@ -136,7 +136,7 @@ CrossoverMethods::edgeCrossover(const std::vector<int> &first, const std::vector
         itLastElemSecondSecond->second = true;
     }
 
-    std::vector<std::list<std::pair<int, bool>>> edgeTabSecond = edgeTab;
+    std::vector<std::list<std::pair<int, bool>>> edgeTabCopy = edgeTab;
 
     std::vector<int> vertexes = first;
     vertexes.pop_back();
@@ -148,18 +148,18 @@ CrossoverMethods::edgeCrossover(const std::vector<int> &first, const std::vector
 
     // 1. v=losowy wierzchołek
     int v = remaining.back();
-    remaining.pop_back();
 
-    std::list<int> offspring;
+    std::list<int> offspring1;
     bool direction = true;
-    while (!remaining.empty()) {
+    while (offspring1.size() < matrixSize) {
+
         // 2. Usuń z tablicy krawędzi wszystkie odniesienia do v
         for (auto &list: edgeTab) {
             list.remove_if([&v](std::pair<int, bool> &element) { return (element.first == v); });
         }
 
         // 3. Zbadaj listę krawędzi dla v.
-        auto result = tryAddBestNeighbor(v, direction, offspring, edgeTab);
+        auto result = tryAddBestNeighbor(v, direction, offspring1, edgeTab);
         if (result.first) {
             removeRemaining(v, remaining);
             v = result.second;
@@ -167,7 +167,7 @@ CrossoverMethods::edgeCrossover(const std::vector<int> &first, const std::vector
         }
 
         // 4. Jeżeli lista krawędzi v jest pusta spróbuj wykonać pkt 3. dla drugiego końcaciągu
-        auto otherEndResult = tryAddBestNeighbor(offspring.front(), direction, offspring, edgeTab);
+        auto otherEndResult = tryAddBestNeighbor(offspring1.front(), direction, offspring1, edgeTab);
         if (otherEndResult.first) {
             removeRemaining(v, remaining);
             direction = false;
@@ -176,63 +176,61 @@ CrossoverMethods::edgeCrossover(const std::vector<int> &first, const std::vector
         }
 
         // 5. Jeżeli pkt. 4 się nie udał
-        addOffspring(offspring, v, direction);
+        addOffspring(offspring1, v, direction);
+        removeRemaining(v, remaining);
         direction = true;
         v = remaining.back();
-        remaining.pop_back();
     }
 
-/////////////////////////////////////////////////////////////////////////////////////// todo
-    vertexes = first;
-    vertexes.pop_back();
+
     std::shuffle(std::begin(vertexes), std::end(vertexes), gen);
     std::list<int> remaining2(vertexes.begin(), vertexes.end());
 
     // 1. v=losowy wierzchołek
-    v = remaining.back();
-    remaining.pop_back();
+    v = remaining2.back();
 
     std::list<int> offspring2;
-    bool direction2 = true;
-    while (!remaining.empty()) {
+    direction = true;
+    while (offspring2.size() < matrixSize) {
+
         // 2. Usuń z tablicy krawędzi wszystkie odniesienia do v
-        for (auto &list: edgeTab) {
+        for (auto &list: edgeTabCopy) {
             list.remove_if([&v](std::pair<int, bool> &element) { return (element.first == v); });
         }
 
         // 3. Zbadaj listę krawędzi dla v.
-        auto result = tryAddBestNeighbor(v, direction, offspring, edgeTab);
+        auto result = tryAddBestNeighbor(v, direction, offspring2, edgeTabCopy);
         if (result.first) {
-            removeRemaining(v, remaining);
+            removeRemaining(v, remaining2);
             v = result.second;
             continue;
         }
 
         // 4. Jeżeli lista krawędzi v jest pusta spróbuj wykonać pkt 3. dla drugiego końcaciągu
-        auto otherEndResult = tryAddBestNeighbor(offspring.front(), direction, offspring, edgeTab);
+        auto otherEndResult = tryAddBestNeighbor(offspring2.front(), direction, offspring2, edgeTabCopy);
         if (otherEndResult.first) {
-            removeRemaining(v, remaining);
+            removeRemaining(v, remaining2);
             direction = false;
             v = otherEndResult.second;
             continue;
         }
 
         // 5. Jeżeli pkt. 4 się nie udał
-        addOffspring(offspring, v, direction);
+        addOffspring(offspring2, v, direction);
+        removeRemaining(v, remaining2);
         direction = true;
-        v = remaining.back();
-        remaining.pop_back();
+        v = remaining2.back();
     }
 
-    std::vector<int> result{std::make_move_iterator(std::begin(offspring)),
-                            std::make_move_iterator(std::end(offspring))};
-    result.push_back(result[0]);
+    std::vector<int> result1{std::make_move_iterator(std::begin(offspring1)),
+                             std::make_move_iterator(std::end(offspring1))};
+    result1.push_back(result1[0]);
 
     std::vector<int> result2{std::make_move_iterator(std::begin(offspring2)),
                              std::make_move_iterator(std::end(offspring2))};
-    result2.push_back(result[0]);
+    result2.push_back(result2[0]);
 
-    return std::make_pair(result, result2);
+    return std::make_pair(result1, result2);
 }
 
 // Funkcja pomocnicza sluzaca znalezieniu wierzcholka w liscie sasiedztwa
@@ -266,13 +264,21 @@ std::pair<bool, int> CrossoverMethods::tryAddBestNeighbor(int vertex, bool direc
 
         if (!edgeTab[vertex].empty()) {
             std::pair<int, int> shortestEdgeListVertexCount(-1, INT_MAX);
+            std::vector<int> shortestEdgeListVertexesList;
             for (const auto &item: edgeTab[vertex]) {
-                if (edgeTab[item.first].size() <= shortestEdgeListVertexCount.second) {
+
+                if (edgeTab[item.first].size() < shortestEdgeListVertexCount.second) {
                     shortestEdgeListVertexCount = std::make_pair(item.first, edgeTab[item.first].size());
+                    shortestEdgeListVertexesList.clear();
+                    shortestEdgeListVertexesList.push_back(item.first);
+                    
+                } else if (edgeTab[item.first].size() == shortestEdgeListVertexCount.second) {
+                    shortestEdgeListVertexesList.push_back(item.first);
                 }
+
             }
             addOffspring(offspring, vertex, direction);
-            return std::make_pair(true, shortestEdgeListVertexCount.first);
+            return std::make_pair(true, shortestEdgeListVertexesList[rand() % shortestEdgeListVertexesList.size()]);
         }
 
     } else {

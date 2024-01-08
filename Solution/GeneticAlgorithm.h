@@ -18,6 +18,8 @@
 
 class GeneticAlgorithm {
 private:
+    GreedyAlgorithm *greedyAlgorithm;
+
     int **matrix = nullptr;
     int matrixSize;
     int populationSize;
@@ -50,7 +52,7 @@ public:
 
     void displayLatestResults();
 
-    GeneticAlgorithm() = default;
+    GeneticAlgorithm();
 
     virtual ~GeneticAlgorithm();
 
@@ -61,13 +63,17 @@ public:
 
     void initializePopulation();
 
-    std::pair<GASubject, GASubject> tournamentSelection(int randomIndex);
+    std::pair<GASubject, GASubject>
+    tournamentSelection(std::uniform_int_distribution<> &distInt, std::random_device &device);
 
     std::pair<GASubject, GASubject> crossSubjects(GASubject &first, GASubject &second) const;
 
     void mutate(GASubject &subject) const;
 
     void insertOffspring(GASubject &subject);
+
+private:
+    static bool inRange(unsigned low, unsigned high, unsigned x);
 };
 
 

@@ -1,6 +1,13 @@
 #include "GeneticAlgorithm.h"
 
-GeneticAlgorithm::~GeneticAlgorithm() = default;
+
+GeneticAlgorithm::GeneticAlgorithm() {
+    greedyAlgorithm = new GreedyAlgorithm();
+}
+
+GeneticAlgorithm::~GeneticAlgorithm() {
+    delete greedyAlgorithm;
+}
 
 void GeneticAlgorithm::clearMemory() {
     if (testing) {
@@ -41,7 +48,7 @@ GeneticAlgorithm::mainFun(int **matrix, int matrixSize, int populationSize, doub
     currentPopulation.reserve(populationSize);
     nextPopulation.reserve(populationSize);
 
-    tournamentParticipants = ceil(sqrt(populationSize) / 4);
+    tournamentParticipants = ceil(sqrt(populationSize) / 2);
     if (tournamentParticipants < 2) {
         tournamentParticipants = 2;
     }
@@ -54,17 +61,16 @@ void GeneticAlgorithm::solveTSP() {
                                                  std::chrono::duration_cast<std::chrono::seconds>(
                                                          std::chrono::duration<int>(timeoutSeconds)
                                                  );
-    std::random_device rdInt;
-    std::mt19937 genInt(rdInt());
-    std::uniform_int_distribution<> distInt(0, populationSize - 1);
+    std::random_device rdev;
+    std::mt19937 twisterEngine(rdev());
 
-    std::random_device rdReal;
-    std::mt19937 genReal(rdReal());
+    std::uniform_int_distribution<> distInt(0, populationSize - 1);
     std::uniform_real_distribution<double> distReal(0.0, 1.0);
 
 
     // Inicjalizacja populacji poczatkowej
     initializePopulation();
+    std::shuffle(currentPopulation.begin(), currentPopulation.end(), rdev);
 
     for (int iteration = 0; true; ++iteration) {
 
@@ -79,29 +85,35 @@ void GeneticAlgorithm::solveTSP() {
         nextPopulation.push_back(best);
 
         while (nextPopulation.size() != populationSize) {
-            auto winners = tournamentSelection(distInt(genInt));
+            auto winners = tournamentSelection(distInt, rdev);
 
-            if (distReal(genReal) < crossFactor) {
+            if (distReal(twisterEngine) < crossFactor) {
 
                 // Krzyzowanie -> zwracanych jest 2 potomkow
                 auto crossResult = crossSubjects(winners.first, winners.second);
 
                 // Mutacja
-                if (distReal(genReal) < mutationFactor) {
+                if (distReal(twisterEngine) < mutationFactor) {
                     mutate(crossResult.first);
                 }
                 insertOffspring(crossResult.first);
 
                 if (nextPopulation.size() != populationSize) {
                     // Mutacja
-                    if (distReal(genReal) < mutationFactor) {
+                    if (distReal(twisterEngine) < mutationFactor) {
                         mutate(crossResult.second);
                     }
                     insertOffspring(crossResult.second);
                 }
 
             } else {
-                nextPopulation.push_back(winners.first);
+
+                if (winners.first.pathCost > winners.second.pathCost) {
+                    nextPopulation.push_back(winners.first);
+                } else {
+                    nextPopulation.push_back(winners.second);
+                }
+
             }
 
         }
@@ -115,18 +127,25 @@ void GeneticAlgorithm::solveTSP() {
 
 void GeneticAlgorithm::initializePopulation() {
     // Wyznaczanie rozwiazania przy pomocy metody zachlannej
-    auto pathCostPair = GreedyAlgorithm::getBestGreedyAlgorithmResult(matrix, matrixSize);
-    greedyAlgorithmCost = pathCostPair.second;
+    auto greedySolutions = greedyAlgorithm->getBestGreedyAlgorithmResult(matrix, matrixSize);
+    greedyAlgorithmCost = greedyAlgorithm->bestCost;
 
-    auto greedy = GASubject(pathCostPair.first);
-    currentPopulation.push_back(greedy);
-    greedy.setPathCost(matrix);
+    int it = 0;
+    while (it < matrixSize && currentPopulation.size() != populationSize) {
+        currentPopulation.emplace_back(greedySolutions[it].first, greedySolutions[it].second);
+        if (greedySolutions[it].second < bestCost) {
+            bestPath = greedySolutions[it].first;
+            bestCost = greedySolutions[it].second;
+            bestCostFoundQPC = Timer::read_QPC();
+        }
+        ++it;
+    }
 
     std::random_device rdev;
     std::mt19937 gen(rdev());
 
-    for (int i = 1; i < populationSize; ++i) {
-        std::vector<int> path(pathCostPair.first);
+    while (currentPopulation.size() != populationSize) {
+        std::vector<int> path(greedyAlgorithm->bestPath);
         path.pop_back();
 
         int v1 = RandomDataGenerator::generateRandomIntInRange(0, matrixSize - 1);
@@ -147,7 +166,7 @@ void GeneticAlgorithm::initializePopulation() {
             v1 = RandomDataGenerator::generateRandomIntInRange(0, matrixSize - 1);
             do {
                 v2 = RandomDataGenerator::generateRandomIntInRange(0, matrixSize - 1);
-            } while (v2 == v1 || abs((v2 - v1)) > (matrixSize / 2));
+            } while (v2 == v1 || abs((v2 - v1)) > (matrixSize - 1 / 2));
             if (v1 > v2) {
                 std::swap(v1, v2);
             }
@@ -168,7 +187,15 @@ void GeneticAlgorithm::initializePopulation() {
     }
 }
 
-std::pair<GASubject, GASubject> GeneticAlgorithm::tournamentSelection(int randomIndex) {
+std::pair<GASubject, GASubject>
+GeneticAlgorithm::tournamentSelection(std::uniform_int_distribution<> &distInt, std::random_device &device) {
+    int randomIndex = distInt(device);
+    int secondRandomIndex;
+    do {
+        secondRandomIndex = distInt(device);
+    } while (inRange(randomIndex, randomIndex + tournamentParticipants, secondRandomIndex) ||
+             inRange(randomIndex, randomIndex + tournamentParticipants, secondRandomIndex + tournamentParticipants));
+
     GASubject a = currentPopulation[randomIndex++ % (populationSize - 1)];
     int limit = randomIndex + tournamentParticipants;
     for (; randomIndex < limit; ++randomIndex) {
@@ -178,10 +205,10 @@ std::pair<GASubject, GASubject> GeneticAlgorithm::tournamentSelection(int random
         }
     }
 
-    GASubject b = currentPopulation[randomIndex++ % (populationSize - 1)];
-    int limit2 = limit + tournamentParticipants;
-    for (; randomIndex < limit2; ++randomIndex) {
-        int i = randomIndex % (populationSize - 1);
+    GASubject b = currentPopulation[secondRandomIndex++ % (populationSize - 1)];
+    int limit2 = secondRandomIndex + tournamentParticipants;
+    for (; secondRandomIndex < limit2; ++secondRandomIndex) {
+        int i = secondRandomIndex % (populationSize - 1);
         if (currentPopulation[i].pathCost <= b.pathCost) {
             b = currentPopulation[i];
         }
@@ -220,4 +247,8 @@ void GeneticAlgorithm::insertOffspring(GASubject &subject) {
         bestCostFoundQPC = Timer::read_QPC();
     }
     nextPopulation.push_back(subject);
+}
+
+bool GeneticAlgorithm::inRange(unsigned int low, unsigned int high, unsigned int x) {
+    return ((x - low) <= (high - low));
 }

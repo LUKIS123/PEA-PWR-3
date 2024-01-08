@@ -15,6 +15,8 @@ public:
 
     explicit GASubject(const std::vector<int> &path);
 
+    GASubject(const std::vector<int> &path, int pathCost);
+
     void setPathCost(int **matrix);
 
     bool operator<(const GASubject &other) const {
