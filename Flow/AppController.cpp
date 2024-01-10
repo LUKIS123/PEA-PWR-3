@@ -1,5 +1,6 @@
 #include "AppController.h"
 
+
 AppController::AppController() {
     matrix = new ATSPMatrix();
     geneticAlgorithm = new GeneticAlgorithm();
@@ -49,6 +50,22 @@ void AppController::mainIndex() {
                 break;
             case ActionResult::READ_AND_CALCULATE_SAVED_PATH:
                 readPathAndDisplayCalculatedCost();
+                status = ActionResult::BACK_TO_MENU;
+                break;
+            case ActionResult::SET_STARTING_POPULATION:
+                setPopulationSize();
+                status = ActionResult::BACK_TO_MENU;
+                break;
+            case ActionResult::SET_MUTATION_FACTOR:
+                setMutationFactor();
+                status = ActionResult::BACK_TO_MENU;
+                break;
+            case ActionResult::SET_CROSSING_FACTOR:
+                setCrossFactor();
+                status = ActionResult::BACK_TO_MENU;
+                break;
+            case ActionResult::SWITCH_CROSS_METHOD:
+                switchCrossMethod();
                 status = ActionResult::BACK_TO_MENU;
                 break;
             case ActionResult::END:
@@ -155,6 +172,80 @@ void AppController::readPathAndDisplayCalculatedCost() {
     }
 
     matrix->calculatePathCost(pathVector);
+    system("PAUSE");
+}
+
+void AppController::setPopulationSize() {
+    std::cout << "Set population size: ";
+    std::cin >> populationSize;
+    while (std::cin.fail()) {
+        std::cin.clear();
+        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+        std::cout << "Bad entry... Enter a NUMBER: ";
+        std::cin >> populationSize;
+    }
+    if (populationSize <= 0) {
+        std::cout << "Wrong input!";
+        populationSize = 500;
+        system("PAUSE");
+    }
+}
+
+void AppController::setMutationFactor() {
+    std::cout << "Set mutation factor (1 >= m >= 0): ";
+    std::cin >> mutationFactor;
+    while (std::cin.fail()) {
+        std::cin.clear();
+        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+        std::cout << "Bad entry... Enter a DECIMAL: ";
+        std::cin >> mutationFactor;
+    }
+    if (mutationFactor > 1.0 || mutationFactor < 0.0) {
+        std::cout << "Wrong input!";
+        mutationFactor = 0.01;
+        system("PAUSE");
+    }
+}
+
+void AppController::setCrossFactor() {
+    std::cout << "Set cross factor (1 >= c >= 0): ";
+    std::cin >> crossFactor;
+    while (std::cin.fail()) {
+        std::cin.clear();
+        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+        std::cout << "Bad entry... Enter a DECIMAL: ";
+        std::cin >> crossFactor;
+    }
+    if (crossFactor > 1.0 || crossFactor < 0.0) {
+        std::cout << "Wrong input!";
+        crossFactor = 0.8;
+        system("PAUSE");
+    }
+}
+
+void AppController::switchCrossMethod() {
+    std::cout << "Choose cross method:" << std::endl;
+    std::cout << "Order crossover => 1" << std::endl;
+    std::cout << "Edge crossover => 2" << std::endl;
+    int choice;
+    std::cout << "Choice: ";
+    std::cin >> choice;
+    while (std::cin.fail()) {
+        std::cin.clear();
+        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+        std::cout << "Bad entry... Enter a NUMBER: ";
+        std::cin >> choice;
+    }
+    std::string method;
+    if (choice == 1) {
+        crossoverMethod = CrossMethod::OX;
+        method = "Order Crossover";
+    } else if (choice == 2) {
+        crossoverMethod = CrossMethod::EX;
+        method = "Edge Crossover";
+    }
+
+    std::cout << "Current cross method: " << method << std::endl;
     system("PAUSE");
 }
 

@@ -11,9 +11,10 @@ ActionResult::mainMenu ConsoleView::mainMenu() {
     std::cout << "5 => Set starting Population size" << std::endl;
     std::cout << "6 => Set Mutation factor" << std::endl;
     std::cout << "7 => Set Crossing factor" << std::endl;
-    std::cout << "8 => RUN GENETIC ALGORITHM" << std::endl;
-    std::cout << "9 => Auto Tests" << std::endl;
-    std::cout << "10 => Read and calculate path cost" << std::endl;
+    std::cout << "8 => RUN GENETIC ALGORITHM..." << std::endl;
+    std::cout << "9 => Set Cross Method" << std::endl;
+    std::cout << "10 => Auto Tests" << std::endl;
+    std::cout << "11 => Read and calculate path cost" << std::endl;
     std::cout << "0 => Exit" << std::endl;
 
     std::cout << "Choice: ";
@@ -44,8 +45,10 @@ ActionResult::mainMenu ConsoleView::mainMenu() {
         case 8:
             return ActionResult::RUN_ALGORITHM;
         case 9:
-            return ActionResult::RUN_TESTS;
+            return ActionResult::SWITCH_CROSS_METHOD;
         case 10:
+            return ActionResult::RUN_TESTS;
+        case 11:
             return ActionResult::READ_AND_CALCULATE_SAVED_PATH;
         case 0:
             return ActionResult::END;

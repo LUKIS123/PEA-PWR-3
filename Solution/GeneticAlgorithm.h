@@ -28,6 +28,16 @@ private:
 
     int tournamentParticipants;
 
+    double eliteFactor = 1.0 - crossFactor;
+    int eliteCount = 0;
+    std::list<GASubject> currentElite;
+
+
+    std::vector<GASubject> matingPool;
+    int matingPoolSize;
+
+    int mutationPoolSize;
+
     std::vector<GASubject> currentPopulation;
     std::vector<GASubject> nextPopulation;
 
@@ -64,16 +74,17 @@ public:
     void initializePopulation();
 
     std::pair<GASubject, GASubject>
-    tournamentSelection(std::uniform_int_distribution<> &distInt, std::random_device &device);
+    tournamentSelection(std::uniform_int_distribution<> &distInt, std::mt19937 &device);
 
     std::pair<GASubject, GASubject> crossSubjects(GASubject &first, GASubject &second) const;
 
     void mutate(GASubject &subject) const;
 
-    void insertOffspring(GASubject &subject);
-
 private:
-    static bool inRange(unsigned low, unsigned high, unsigned x);
+    static bool inRange(unsigned int low, unsigned int high, unsigned int x) {
+        return ((x - low) <= (high - low));
+    }
+
 };
 
 

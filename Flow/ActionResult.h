@@ -16,6 +16,7 @@ public:
         BACK_TO_MENU = 9,
         DISPLAY_LATEST_RESULT = 10,
         READ_AND_CALCULATE_SAVED_PATH = 11,
+        SWITCH_CROSS_METHOD = 12
     };
 
     enum automaticTestsMenu {

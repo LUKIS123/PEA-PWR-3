@@ -6,7 +6,7 @@
 #include <cmath>
 #include "./ActionResult.h"
 #include "./ConsoleView.h"
-#include "./LatestAlgorithmRan.h"
+#include "./Enums.h"
 #include "../Matrix/ATSPMatrix.h"
 #include "../MeasureTime/Timer.h"
 #include "../FileUtils/DataFileUtility.h"
@@ -30,7 +30,8 @@ private:
     int timeoutSeconds = 120;
 
     // GENETIC ALGORITHM PARAMS
-    int populationSize = 500;
+    CrossMethod crossoverMethod = CrossMethod::OX;
+    int populationSize = 200;
     double mutationFactor = 0.01;
     double crossFactor = 0.8;
 
@@ -56,6 +57,14 @@ public:
     void testGeneticAlgorithm();
 
     void runGeneticAlgorithm();
+
+    void setPopulationSize();
+
+    void setMutationFactor();
+
+    void setCrossFactor();
+
+    void switchCrossMethod();
 };
 
 

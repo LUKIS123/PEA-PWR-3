@@ -23,7 +23,7 @@ add_executable(PEA_PWR_3 main.cpp
         Flow/AppController.cpp
         Flow/ConsoleView.h
         Flow/ConsoleView.cpp
-        Flow/LatestAlgorithmRan.h
+        Flow/Enums.h
         Utils/GreedyAlgorithm.h
         Utils/GreedyAlgorithm.cpp
         Utils/GASubject.h

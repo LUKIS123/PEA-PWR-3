@@ -48,10 +48,18 @@ GeneticAlgorithm::mainFun(int **matrix, int matrixSize, int populationSize, doub
     currentPopulation.reserve(populationSize);
     nextPopulation.reserve(populationSize);
 
-    tournamentParticipants = ceil(sqrt(populationSize) / 2);
-    if (tournamentParticipants < 2) {
-        tournamentParticipants = 2;
+    matingPoolSize = ceil(populationSize * crossFactor);
+    matingPool.reserve(matingPoolSize);
+
+    tournamentParticipants = ceil(sqrt(populationSize) / 3);
+    if (tournamentParticipants < 3) {
+        tournamentParticipants = 3;
     }
+
+    eliteFactor = 1.0 - crossFactor;
+    eliteCount = ceil(populationSize * eliteFactor);
+
+    mutationPoolSize = ceil(matingPoolSize * mutationFactor);
 
     solveTSP();
 }
@@ -63,64 +71,73 @@ void GeneticAlgorithm::solveTSP() {
                                                  );
     std::random_device rdev;
     std::mt19937 twisterEngine(rdev());
-
     std::uniform_int_distribution<> distInt(0, populationSize - 1);
-    std::uniform_real_distribution<double> distReal(0.0, 1.0);
-
 
     // Inicjalizacja populacji poczatkowej
     initializePopulation();
-    std::shuffle(currentPopulation.begin(), currentPopulation.end(), rdev);
 
     for (int iteration = 0; true; ++iteration) {
+        std::shuffle(currentPopulation.begin(), currentPopulation.end(), rdev);
 
         // Przerwanie algorytmu jesli osiagnieto kryterium stopu
         if ((breakAlgoTimePoint - std::chrono::system_clock::now()).count() < 0) {
             break;
         }
 
-        // Przetrwanie najlepszego potomka
-        GASubject best = GASubject(bestPath);
-        best.setPathCost(matrix);
-        nextPopulation.push_back(best);
+        // 1. Ocena przystosowania oraz tworzenie elity
+        for (int j = 0; j < populationSize; ++j) {
 
-        while (nextPopulation.size() != populationSize) {
-            auto winners = tournamentSelection(distInt, rdev);
-
-            if (distReal(twisterEngine) < crossFactor) {
-
-                // Krzyzowanie -> zwracanych jest 2 potomkow
-                auto crossResult = crossSubjects(winners.first, winners.second);
-
-                // Mutacja
-                if (distReal(twisterEngine) < mutationFactor) {
-                    mutate(crossResult.first);
-                }
-                insertOffspring(crossResult.first);
-
-                if (nextPopulation.size() != populationSize) {
-                    // Mutacja
-                    if (distReal(twisterEngine) < mutationFactor) {
-                        mutate(crossResult.second);
-                    }
-                    insertOffspring(crossResult.second);
-                }
-
-            } else {
-
-                if (winners.first.pathCost > winners.second.pathCost) {
-                    nextPopulation.push_back(winners.first);
-                } else {
-                    nextPopulation.push_back(winners.second);
-                }
-
+            currentPopulation[j].setPathCost(matrix);
+            // Zbieranie danych o najlepszym wyniku
+            if (currentPopulation[j].pathCost < bestCost) {
+                bestPath = currentPopulation[j].path;
+                bestCost = currentPopulation[j].pathCost;
+                bestCostFoundQPC = Timer::read_QPC();
             }
 
+            if (currentElite.size() < eliteCount || currentPopulation[j].pathCost <= currentElite.back().pathCost) {
+                currentElite.push_front(currentPopulation[j]);
+                if (currentElite.size() > eliteCount) {
+                    currentElite.pop_back();
+                }
+                currentElite.sort([](const GASubject &a, const GASubject &b) {
+                    return a.pathCost < b.pathCost;
+                });
+            }
+
+            // todo
+            // 2 metoda init z samymi losowymi?
         }
 
-        // Zastepowanie obecnej populacji nowa populacja
+        // 2. Selekcja
+        while (matingPool.size() != matingPoolSize) {
+            auto winners = tournamentSelection(distInt, twisterEngine);
+            matingPool.push_back(winners.first);
+            matingPool.push_back(winners.second);
+        }
+
+        // 3. Krzyżowanie oraz mutacja
+        for (int j = 0; j < matingPoolSize - 1; j = j + 2) {
+            auto offspring = crossSubjects(matingPool[j], matingPool[j + 1]);
+            if (j <= mutationPoolSize * 2) {
+                mutate(offspring.first);
+            }
+            nextPopulation.push_back(offspring.first);
+            nextPopulation.push_back(offspring.second);
+        }
+
+        // 4. Uzupelnianie populacji elita -> sukcesja
+        auto it = currentElite.begin();
+        while (nextPopulation.size() != populationSize && it != currentElite.end()) {
+            nextPopulation.push_back(*it);
+            ++it;
+        }
+
+        // 5. Zastepowanie obecnej populacji nowa populacja
         currentPopulation.swap(nextPopulation);
         nextPopulation.clear();
+        matingPool.clear();
+        currentElite.clear();
     }
 
 }
@@ -188,7 +205,7 @@ void GeneticAlgorithm::initializePopulation() {
 }
 
 std::pair<GASubject, GASubject>
-GeneticAlgorithm::tournamentSelection(std::uniform_int_distribution<> &distInt, std::random_device &device) {
+GeneticAlgorithm::tournamentSelection(std::uniform_int_distribution<> &distInt, std::mt19937 &device) {
     int randomIndex = distInt(device);
     int secondRandomIndex;
     do {
@@ -237,18 +254,4 @@ void GeneticAlgorithm::mutate(GASubject &subject) const {
 
     std::swap(subject.path[v1], subject.path[v2]);
     subject.path.push_back(subject.path[0]);
-}
-
-void GeneticAlgorithm::insertOffspring(GASubject &subject) {
-    subject.setPathCost(matrix);
-    if (subject.pathCost < bestCost) {
-        bestPath = subject.path;
-        bestCost = subject.pathCost;
-        bestCostFoundQPC = Timer::read_QPC();
-    }
-    nextPopulation.push_back(subject);
-}
-
-bool GeneticAlgorithm::inRange(unsigned int low, unsigned int high, unsigned int x) {
-    return ((x - low) <= (high - low));
 }

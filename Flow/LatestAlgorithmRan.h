@@ -1,9 +1,0 @@
-#ifndef PEA_PWR_3_LATESTALGORITHMRAN_H
-#define PEA_PWR_3_LATESTALGORITHMRAN_H
-
-enum LatestAlgorithm {
-    NONE = 0,
-    GENETIC = 1,
-};
-
-#endif //PEA_PWR_3_LATESTALGORITHMRAN_H
