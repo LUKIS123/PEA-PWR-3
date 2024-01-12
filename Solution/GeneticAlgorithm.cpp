@@ -22,7 +22,7 @@ void GeneticAlgorithm::clearMemory() {
 }
 
 void GeneticAlgorithm::displayLatestResults() {
-    std::cout << "GREEDY: " << greedyAlgorithmCost << std::endl;
+    std::cout << "START POPULATION BEST COST: " << startingPopulationBestPathCost << std::endl;
     std::cout << "ALGORITHM RESULTS:" << std::endl;
     std::cout << "Best Path: ";
     for (const auto &item: bestPath) {
@@ -33,8 +33,8 @@ void GeneticAlgorithm::displayLatestResults() {
 }
 
 void
-GeneticAlgorithm::mainFun(int **matrix, int matrixSize, int populationSize, double mutationFactor,
-                          double crossFactor, long long int startQPC, int timeout) {
+GeneticAlgorithm::mainFun(int **matrix, int matrixSize, int populationSize, double mutationFactor, double crossFactor,
+                          long long int startQPC, int timeout, bool isRandomInit, CrossMethod method) {
     clearMemory();
 
     this->matrix = matrix;
@@ -44,6 +44,8 @@ GeneticAlgorithm::mainFun(int **matrix, int matrixSize, int populationSize, doub
     this->crossFactor = crossFactor;
     this->startQPC = startQPC;
     this->timeoutSeconds = timeout;
+    this->isRandomPopulationInitialization = isRandomInit;
+    this->crossoverMethod = method;
 
     currentPopulation.reserve(populationSize);
     nextPopulation.reserve(populationSize);
@@ -74,7 +76,11 @@ void GeneticAlgorithm::solveTSP() {
     std::uniform_int_distribution<> distInt(0, populationSize - 1);
 
     // Inicjalizacja populacji poczatkowej
-    initializePopulation();
+    if (isRandomPopulationInitialization) {
+        initializePopulationWithRandomPaths();
+    } else {
+        initializePopulation();
+    }
 
     for (int iteration = 0; true; ++iteration) {
         std::shuffle(currentPopulation.begin(), currentPopulation.end(), rdev);
@@ -105,8 +111,6 @@ void GeneticAlgorithm::solveTSP() {
                 });
             }
 
-            // todo
-            // 2 metoda init z samymi losowymi?
         }
 
         // 2. Selekcja
@@ -145,7 +149,7 @@ void GeneticAlgorithm::solveTSP() {
 void GeneticAlgorithm::initializePopulation() {
     // Wyznaczanie rozwiazania przy pomocy metody zachlannej
     auto greedySolutions = greedyAlgorithm->getBestGreedyAlgorithmResult(matrix, matrixSize);
-    greedyAlgorithmCost = greedyAlgorithm->bestCost;
+    startingPopulationBestPathCost = greedyAlgorithm->bestCost;
 
     int it = 0;
     while (it < matrixSize && currentPopulation.size() != populationSize) {
@@ -204,6 +208,29 @@ void GeneticAlgorithm::initializePopulation() {
     }
 }
 
+void GeneticAlgorithm::initializePopulationWithRandomPaths() {
+    std::random_device rdev;
+    std::mt19937 gen(rdev());
+
+    while (currentPopulation.size() != populationSize) {
+        std::vector<int> path(matrixSize);
+        std::iota(std::begin(path), std::end(path), 0);
+        std::shuffle(path.begin(), path.end(), gen);
+        path.push_back(path[0]);
+
+        auto subject = GASubject(path);
+        subject.setPathCost(matrix);
+
+        if (subject.pathCost < bestCost) {
+            bestPath = subject.path;
+            bestCost = subject.pathCost;
+            bestCostFoundQPC = Timer::read_QPC();
+        }
+
+        currentPopulation.push_back(subject);
+    }
+}
+
 std::pair<GASubject, GASubject>
 GeneticAlgorithm::tournamentSelection(std::uniform_int_distribution<> &distInt, std::mt19937 &device) {
     int randomIndex = distInt(device);
@@ -238,9 +265,15 @@ GeneticAlgorithm::tournamentSelection(std::uniform_int_distribution<> &distInt, 
 }
 
 std::pair<GASubject, GASubject> GeneticAlgorithm::crossSubjects(GASubject &first, GASubject &second) const {
-    auto descendant = CrossoverMethods::orderCrossover(first.path, second.path, matrixSize);
-    auto subject1 = GASubject(descendant.first);
-    auto subject2 = GASubject(descendant.second);
+    std::pair<std::vector<int>, std::vector<int>> descendants;
+    if (crossoverMethod == CrossMethod::OX) {
+        descendants = CrossoverMethods::orderCrossover(first.path, second.path, matrixSize);
+    } else {
+        descendants = CrossoverMethods::edgeCrossover(first.path, second.path, matrixSize);
+    }
+
+    auto subject1 = GASubject(descendants.first);
+    auto subject2 = GASubject(descendants.second);
     return std::make_pair(subject1, subject2);
 }
 

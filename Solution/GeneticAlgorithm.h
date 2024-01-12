@@ -15,9 +15,12 @@
 #include "../Utils/GreedyAlgorithm.h"
 #include "../Utils/GASubject.h"
 #include "../Utils/CrossoverMethods.h"
+#include "../Flow/Enums.h"
 
 class GeneticAlgorithm {
 private:
+    bool isRandomPopulationInitialization = false;
+    CrossMethod crossoverMethod = CrossMethod::OX;
     GreedyAlgorithm *greedyAlgorithm;
 
     int **matrix = nullptr;
@@ -49,7 +52,7 @@ public:
     std::vector<int> bestPath;
     int bestCost = INT_MAX;
 
-    int greedyAlgorithmCost;
+    int startingPopulationBestPathCost;
 
     // TESTING
     bool testing = false;
@@ -67,11 +70,13 @@ public:
     virtual ~GeneticAlgorithm();
 
     void mainFun(int **matrix, int matrixSize, int populationSize, double mutationFactor, double crossFactor,
-                 long long int startQPC, int timeout);
+                 long long int startQPC, int timeout, bool isRandomInit, CrossMethod method);
 
     void solveTSP();
 
     void initializePopulation();
+
+    void initializePopulationWithRandomPaths();
 
     std::pair<GASubject, GASubject>
     tournamentSelection(std::uniform_int_distribution<> &distInt, std::mt19937 &device);

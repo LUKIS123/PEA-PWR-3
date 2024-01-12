@@ -111,7 +111,7 @@ void AppController::runGeneticAlgorithm() {
 
     long long start = Timer::read_QPC();
     geneticAlgorithm->mainFun(matrix->getMatrix(), matrix->getSize(), populationSize, mutationFactor, crossFactor,
-                              start, timeoutSeconds);
+                              start, timeoutSeconds, isRandomPathPopulationInitialization, crossoverMethod);
     long long end = Timer::read_QPC();
     geneticAlgorithm->displayLatestResults();
     latestTimerResult = Timer::getMicroSecondsElapsed(start, end);

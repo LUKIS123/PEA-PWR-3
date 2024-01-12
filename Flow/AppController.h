@@ -30,8 +30,9 @@ private:
     int timeoutSeconds = 120;
 
     // GENETIC ALGORITHM PARAMS
+    bool isRandomPathPopulationInitialization = false;
     CrossMethod crossoverMethod = CrossMethod::OX;
-    int populationSize = 200;
+    int populationSize = 500;
     double mutationFactor = 0.01;
     double crossFactor = 0.8;
 
