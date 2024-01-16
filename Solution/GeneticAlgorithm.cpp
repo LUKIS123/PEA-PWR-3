@@ -53,7 +53,7 @@ GeneticAlgorithm::mainFun(int **matrix, int matrixSize, int populationSize, doub
     matingPoolSize = ceil(populationSize * crossFactor);
     matingPool.reserve(matingPoolSize);
 
-    tournamentParticipants = ceil(sqrt(populationSize) / 3);
+    tournamentParticipants = ceil(sqrt(populationSize) / 2);
     if (tournamentParticipants < 3) {
         tournamentParticipants = 3;
     }
@@ -92,13 +92,18 @@ void GeneticAlgorithm::solveTSP() {
 
         // 1. Ocena przystosowania oraz tworzenie elity
         for (int j = 0; j < populationSize; ++j) {
-
             currentPopulation[j].setPathCost(matrix);
+
             // Zbieranie danych o najlepszym wyniku
             if (currentPopulation[j].pathCost < bestCost) {
                 bestPath = currentPopulation[j].path;
                 bestCost = currentPopulation[j].pathCost;
                 bestCostFoundQPC = Timer::read_QPC();
+
+                if (testing) {
+                    timestamps.push_back(Timer::getMicroSecondsElapsed(startQPC, bestCostFoundQPC) / 1000);
+                    solutionProgressionPoints.push_back(currentPopulation[j].pathCost);
+                }
             }
 
             if (currentElite.size() < eliteCount || currentPopulation[j].pathCost <= currentElite.back().pathCost) {
@@ -138,7 +143,7 @@ void GeneticAlgorithm::solveTSP() {
         }
 
         // 5. Zastepowanie obecnej populacji nowa populacja
-        currentPopulation.swap(nextPopulation);
+        currentPopulation = std::move(nextPopulation);
         nextPopulation.clear();
         matingPool.clear();
         currentElite.clear();
@@ -206,6 +211,11 @@ void GeneticAlgorithm::initializePopulation() {
 
         currentPopulation.push_back(subject);
     }
+
+    if (testing) {
+        timestamps.push_back(Timer::getMicroSecondsElapsed(startQPC, bestCostFoundQPC) / 1000);
+        solutionProgressionPoints.push_back(bestCost);
+    }
 }
 
 void GeneticAlgorithm::initializePopulationWithRandomPaths() {
@@ -228,6 +238,12 @@ void GeneticAlgorithm::initializePopulationWithRandomPaths() {
         }
 
         currentPopulation.push_back(subject);
+    }
+    startingPopulationBestPathCost = bestCost;
+
+    if (testing) {
+        timestamps.push_back(Timer::getMicroSecondsElapsed(startQPC, bestCostFoundQPC) / 1000);
+        solutionProgressionPoints.push_back(bestCost);
     }
 }
 

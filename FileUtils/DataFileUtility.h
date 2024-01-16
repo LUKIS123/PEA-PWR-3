@@ -20,10 +20,10 @@ public:
                                const std::string &headline);
 
     static bool
-    saveAutomaticTSTestResults(const std::string &FileName, const std::vector<double> &us,
+    saveAutomaticGATestResults(const std::string &FileName, const std::vector<double> &us,
                                const std::vector<double> &ms,
-                               const std::vector<double> &s, const std::vector<int> &greedyCosts,
-                               const std::vector<int> &solCosts, const std::string &headline);
+                               const std::vector<double> &s, const std::vector<int> &beginCosts,
+                               const std::vector<int> &solCosts, const std::string &headline, const int size);
 
     static bool
     saveTimestamps(const std::string &FileName, const std::vector<std::vector<double>> &timestamps);

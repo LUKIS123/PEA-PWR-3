@@ -273,8 +273,12 @@ void AppController::testsMenu() {
             case ActionResult::MENU_TEST:
                 status = ConsoleView::automaticTestsMenu();
                 break;
-            case ActionResult::TEST_GENETIC:
-                testGeneticAlgorithm();
+            case ActionResult::TEST_GENETIC_OX:
+                testGeneticAlgorithm(false);
+                status = ActionResult::MENU_TEST;
+                break;
+            case ActionResult::TEST_GENETIC_EX:
+                testGeneticAlgorithm(true);
                 status = ActionResult::MENU_TEST;
                 break;
             case ActionResult::END_TEST:
@@ -284,6 +288,90 @@ void AppController::testsMenu() {
 }
 
 // Metoda sluzaca testom algorytmu genetycznego
-void AppController::testGeneticAlgorithm() {
+void AppController::testGeneticAlgorithm(bool crossMethod) {
+    CrossMethod testCrossoverMethod;
+    if (crossMethod) {
+        testCrossoverMethod = CrossMethod::EX;
+    } else {
+        testCrossoverMethod = CrossMethod::OX;
+    }
 
+    std::string fileName = "genetic_algorithm_tests";
+    std::string bestResultPathFileName = "genetic_algorithm_tests_bestpath";
+    std::string timestampsFileName = "genetic_algorithm_tests_timestamps";
+    std::string solutionProgressFileName = "genetic_algorithm_tests_progress";
+
+    std::string cols = "us,ms,s,begin_cost,sol_cost,size";
+
+    std::vector<double> resultsUS;
+    std::vector<double> resultsMS;
+    std::vector<double> resultsS;
+    std::vector<int> beginCosts;
+    std::vector<int> solCosts;
+    std::vector<std::vector<double>> solutionTimestamps;
+    std::vector<std::vector<int>> solutionProgressPoints;
+
+    int bestCost = INT_MAX;
+    std::vector<int> bestPath;
+
+    int iter = 1;
+    std::vector<int> sizes = {100, 250, 600};
+    testCrossoverMethod = CrossMethod::EX;
+
+    timeoutSeconds = 480;
+    testNumber = 5;
+
+    geneticAlgorithm->testing = true;
+    long long int start, end;
+    double results;
+
+    for (const auto &size: sizes) {
+
+        for (int i = 0; i < testNumber; i++) {
+            start = Timer::read_QPC();
+            geneticAlgorithm->mainFun(matrix->getMatrix(), matrix->getSize(), size, mutationFactor,
+                                      crossFactor,
+                                      start, timeoutSeconds, isRandomPathPopulationInitialization, testCrossoverMethod);
+            end = geneticAlgorithm->bestCostFoundQPC;
+
+            results = Timer::getMicroSecondsElapsed(start, end);
+            resultsUS.push_back(results);
+            resultsMS.push_back(results / 1000);
+            resultsS.push_back(results / 1000000);
+
+            beginCosts.push_back(geneticAlgorithm->startingPopulationBestPathCost);
+            solCosts.push_back(geneticAlgorithm->bestCost);
+
+            solutionTimestamps.push_back(geneticAlgorithm->timestamps);
+            solutionProgressPoints.push_back(geneticAlgorithm->solutionProgressionPoints);
+
+            if (geneticAlgorithm->bestCost <= bestCost) {
+                bestCost = geneticAlgorithm->bestCost;
+                bestPath = geneticAlgorithm->bestPath;
+            }
+        }
+
+        DataFileUtility::saveAutomaticGATestResults(fileName + std::to_string(iter), resultsUS, resultsMS, resultsS,
+                                                    beginCosts,
+                                                    solCosts,
+                                                    cols, size);
+        DataFileUtility::saveResultPath(bestResultPathFileName + std::to_string(iter), bestPath);
+        DataFileUtility::saveTimestamps(timestampsFileName + std::to_string(iter), solutionTimestamps);
+        DataFileUtility::saveProgressionPoints(solutionProgressFileName + std::to_string(iter), solutionProgressPoints);
+
+
+        resultsUS.clear();
+        resultsMS.clear();
+        resultsS.clear();
+        beginCosts.clear();
+        solCosts.clear();
+        solutionTimestamps.clear();
+        solutionProgressPoints.clear();
+
+        ++iter;
+    }
+
+    geneticAlgorithm->testing = false;
+    std::cout << "Done!" << std::endl;
+    system("PAUSE");
 }

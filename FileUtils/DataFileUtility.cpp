@@ -4,10 +4,11 @@
 
 using namespace std;
 
-bool DataFileUtility::saveAutomaticTSTestResults(const std::string &FileName, const std::vector<double> &us,
-                                                 const std::vector<double> &ms, const std::vector<double> &s,
-                                                 const std::vector<int> &greedyCosts, const std::vector<int> &solCosts,
-                                                 const std::string &headline) {
+bool DataFileUtility::saveAutomaticGATestResults(const std::string &FileName, const std::vector<double> &us,
+                                                 const std::vector<double> &ms,
+                                                 const std::vector<double> &s, const std::vector<int> &beginCosts,
+                                                 const std::vector<int> &solCosts, const std::string &headline,
+                                                 const int size) {
     ofstream file;
     file.open(FileName + ".csv", ios::out);
     if (file.is_open()) {
@@ -19,14 +20,14 @@ bool DataFileUtility::saveAutomaticTSTestResults(const std::string &FileName, co
             auto us_front = us.begin();
             auto ms_front = ms.begin();
             auto s_front = s.begin();
-            auto gr_front = greedyCosts.begin();
+            auto bgn_front = beginCosts.begin();
             auto sol_front = solCosts.begin();
             for (; us_front != us.end(); ++us_front) {
-                file << *us_front << "," << *ms_front << "," << *s_front << "," << *gr_front << "," << *sol_front
-                     << endl;
+                file << *us_front << "," << *ms_front << "," << *s_front << "," << *bgn_front << "," << *sol_front
+                     << "," << size << endl;
                 ++ms_front;
                 ++s_front;
-                ++gr_front;
+                ++bgn_front;
                 ++sol_front;
             }
             file.close();

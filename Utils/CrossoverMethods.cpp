@@ -143,15 +143,18 @@ CrossoverMethods::edgeCrossover(const std::vector<int> &first, const std::vector
     std::random_device rdev;
     std::mt19937 gen(rdev());
     std::shuffle(std::begin(vertexes), std::end(vertexes), gen);
-
-    std::list<int> remaining(vertexes.begin(), vertexes.end());
+    std::list<int> remaining1(vertexes.begin(), vertexes.end());
 
     // 1. v=losowy wierzchołek
-    int v = remaining.back();
+    int v = remaining1.back();
 
     std::list<int> offspring1;
     bool direction = true;
-    while (offspring1.size() < matrixSize) {
+    while (offspring1.size() < matrixSize - 1) {
+
+        // Dodawanie wierzcholka do sciezki
+        addOffspring(offspring1, v, direction);
+        removeRemaining(v, remaining1);
 
         // 2. Usuń z tablicy krawędzi wszystkie odniesienia do v
         for (auto &list: edgeTab) {
@@ -161,7 +164,6 @@ CrossoverMethods::edgeCrossover(const std::vector<int> &first, const std::vector
         // 3. Zbadaj listę krawędzi dla v.
         auto result = tryAddBestNeighbor(v, direction, offspring1, edgeTab);
         if (result.first) {
-            removeRemaining(v, remaining);
             v = result.second;
             continue;
         }
@@ -169,18 +171,16 @@ CrossoverMethods::edgeCrossover(const std::vector<int> &first, const std::vector
         // 4. Jeżeli lista krawędzi v jest pusta spróbuj wykonać pkt 3. dla drugiego końcaciągu
         auto otherEndResult = tryAddBestNeighbor(offspring1.front(), direction, offspring1, edgeTab);
         if (otherEndResult.first) {
-            removeRemaining(v, remaining);
             direction = false;
             v = otherEndResult.second;
             continue;
         }
 
-        // 5. Jeżeli pkt. 4 się nie udał
-        addOffspring(offspring1, v, direction);
-        removeRemaining(v, remaining);
+        // 5. Jeżeli pkt. 4 się nie udał, wierzcholek losowy
         direction = true;
-        v = remaining.back();
+        v = remaining1.back();
     }
+    addOffspring(offspring1, v, direction);
 
 
     std::shuffle(std::begin(vertexes), std::end(vertexes), gen);
@@ -191,7 +191,10 @@ CrossoverMethods::edgeCrossover(const std::vector<int> &first, const std::vector
 
     std::list<int> offspring2;
     direction = true;
-    while (offspring2.size() < matrixSize) {
+    while (offspring2.size() < matrixSize - 1) {
+
+        addOffspring(offspring2, v, direction);
+        removeRemaining(v, remaining2);
 
         // 2. Usuń z tablicy krawędzi wszystkie odniesienia do v
         for (auto &list: edgeTabCopy) {
@@ -201,7 +204,6 @@ CrossoverMethods::edgeCrossover(const std::vector<int> &first, const std::vector
         // 3. Zbadaj listę krawędzi dla v.
         auto result = tryAddBestNeighbor(v, direction, offspring2, edgeTabCopy);
         if (result.first) {
-            removeRemaining(v, remaining2);
             v = result.second;
             continue;
         }
@@ -209,18 +211,17 @@ CrossoverMethods::edgeCrossover(const std::vector<int> &first, const std::vector
         // 4. Jeżeli lista krawędzi v jest pusta spróbuj wykonać pkt 3. dla drugiego końcaciągu
         auto otherEndResult = tryAddBestNeighbor(offspring2.front(), direction, offspring2, edgeTabCopy);
         if (otherEndResult.first) {
-            removeRemaining(v, remaining2);
             direction = false;
             v = otherEndResult.second;
             continue;
         }
 
         // 5. Jeżeli pkt. 4 się nie udał
-        addOffspring(offspring2, v, direction);
-        removeRemaining(v, remaining2);
         direction = true;
         v = remaining2.back();
     }
+    addOffspring(offspring2, v, direction);
+
 
     std::vector<int> result1{std::make_move_iterator(std::begin(offspring1)),
                              std::make_move_iterator(std::end(offspring1))};
@@ -229,6 +230,7 @@ CrossoverMethods::edgeCrossover(const std::vector<int> &first, const std::vector
     std::vector<int> result2{std::make_move_iterator(std::begin(offspring2)),
                              std::make_move_iterator(std::end(offspring2))};
     result2.push_back(result2[0]);
+
 
     return std::make_pair(result1, result2);
 }
@@ -271,18 +273,16 @@ std::pair<bool, int> CrossoverMethods::tryAddBestNeighbor(int vertex, bool direc
                     shortestEdgeListVertexCount = std::make_pair(item.first, edgeTab[item.first].size());
                     shortestEdgeListVertexesList.clear();
                     shortestEdgeListVertexesList.push_back(item.first);
-                    
+
                 } else if (edgeTab[item.first].size() == shortestEdgeListVertexCount.second) {
                     shortestEdgeListVertexesList.push_back(item.first);
                 }
 
             }
-            addOffspring(offspring, vertex, direction);
             return std::make_pair(true, shortestEdgeListVertexesList[rand() % shortestEdgeListVertexesList.size()]);
         }
 
     } else {
-        addOffspring(offspring, vertex, direction);
         return std::make_pair(true, itRepeated->first);
     }
 

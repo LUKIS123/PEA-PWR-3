@@ -60,8 +60,8 @@ ActionResult::mainMenu ConsoleView::mainMenu() {
 ActionResult::automaticTestsMenu ConsoleView::automaticTestsMenu() {
     system("CLS");
     std::cout << "AUTOMATIC TESTS: Choose from given options..." << std::endl;
-    std::cout << "1 => Test" << std::endl;
-    std::cout << "2 => Test" << std::endl;
+    std::cout << "1 => Test with OX" << std::endl;
+    std::cout << "2 => Test with EX" << std::endl;
     std::cout << "0 => Exit" << std::endl;
 
     std::cout << "Choice: ";
@@ -77,9 +77,9 @@ ActionResult::automaticTestsMenu ConsoleView::automaticTestsMenu() {
         case 0:
             return ActionResult::automaticTestsMenu::END_TEST;
         case 1:
-            return ActionResult::automaticTestsMenu::TEST_GENETIC;
+            return ActionResult::automaticTestsMenu::TEST_GENETIC_OX;
         case 2:
-            return ActionResult::automaticTestsMenu::TEST_GENETIC;
+            return ActionResult::automaticTestsMenu::TEST_GENETIC_EX;
         default:
             return ActionResult::automaticTestsMenu::MENU_TEST;
     }

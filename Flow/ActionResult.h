@@ -22,7 +22,8 @@ public:
     enum automaticTestsMenu {
         END_TEST = 0,
         MENU_TEST = 1,
-        TEST_GENETIC = 2,
+        TEST_GENETIC_OX = 2,
+        TEST_GENETIC_EX = 3,
     };
 };
 

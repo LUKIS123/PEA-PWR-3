@@ -30,9 +30,9 @@ private:
     int timeoutSeconds = 120;
 
     // GENETIC ALGORITHM PARAMS
-    bool isRandomPathPopulationInitialization = false;
+    bool isRandomPathPopulationInitialization = true;
     CrossMethod crossoverMethod = CrossMethod::OX;
-    int populationSize = 500;
+    int populationSize = 250;
     double mutationFactor = 0.01;
     double crossFactor = 0.8;
 
@@ -55,7 +55,7 @@ public:
 
     void readPathAndDisplayCalculatedCost();
 
-    void testGeneticAlgorithm();
+    void testGeneticAlgorithm(bool crossMethod);
 
     void runGeneticAlgorithm();
 
