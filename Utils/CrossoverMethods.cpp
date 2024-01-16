@@ -162,14 +162,14 @@ CrossoverMethods::edgeCrossover(const std::vector<int> &first, const std::vector
         }
 
         // 3. Zbadaj listę krawędzi dla v.
-        auto result = tryAddBestNeighbor(v, direction, offspring1, edgeTab);
+        auto result = tryAddBestNeighbor(v, edgeTab);
         if (result.first) {
             v = result.second;
             continue;
         }
 
         // 4. Jeżeli lista krawędzi v jest pusta spróbuj wykonać pkt 3. dla drugiego końcaciągu
-        auto otherEndResult = tryAddBestNeighbor(offspring1.front(), direction, offspring1, edgeTab);
+        auto otherEndResult = tryAddBestNeighbor(offspring1.front(), edgeTab);
         if (otherEndResult.first) {
             direction = false;
             v = otherEndResult.second;
@@ -202,14 +202,14 @@ CrossoverMethods::edgeCrossover(const std::vector<int> &first, const std::vector
         }
 
         // 3. Zbadaj listę krawędzi dla v.
-        auto result = tryAddBestNeighbor(v, direction, offspring2, edgeTabCopy);
+        auto result = tryAddBestNeighbor(v, edgeTabCopy);
         if (result.first) {
             v = result.second;
             continue;
         }
 
         // 4. Jeżeli lista krawędzi v jest pusta spróbuj wykonać pkt 3. dla drugiego końcaciągu
-        auto otherEndResult = tryAddBestNeighbor(offspring2.front(), direction, offspring2, edgeTabCopy);
+        auto otherEndResult = tryAddBestNeighbor(offspring2.front(), edgeTabCopy);
         if (otherEndResult.first) {
             direction = false;
             v = otherEndResult.second;
@@ -254,8 +254,8 @@ void CrossoverMethods::addOffspring(std::list<int> &offspring, int vertex, bool 
 }
 
 // Punkt 3: Jeżeli to możliwe przejdź do wierzchołka połączonego krawędzią wspólną lub wierzchołka którego listakrawędzi jest najkrótsza
-std::pair<bool, int> CrossoverMethods::tryAddBestNeighbor(int vertex, bool direction, std::list<int> &offspring,
-                                                          std::vector<std::list<std::pair<int, bool>>> &edgeTab) {
+std::pair<bool, int>
+CrossoverMethods::tryAddBestNeighbor(int vertex, const std::vector<std::list<std::pair<int, bool>>> &edgeTab) {
 
     auto itRepeated = std::find_if(edgeTab[vertex].begin(), edgeTab[vertex].end(),
                                    [](const std::pair<int, bool> &element) {

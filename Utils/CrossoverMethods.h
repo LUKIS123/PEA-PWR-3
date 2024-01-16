@@ -22,8 +22,8 @@ public:
 
     static void addOffspring(std::list<int> &offspring, int vertex, bool direction);
 
-    static std::pair<bool, int> tryAddBestNeighbor(int vertex, bool direction, std::list<int> &offspring,
-                                                   std::vector<std::list<std::pair<int, bool>>> &edgeTab);
+    static std::pair<bool, int>
+    tryAddBestNeighbor(int vertex, const std::vector<std::list<std::pair<int, bool>>> &edgeTab);
 
     static void removeRemaining(int vertex, std::list<int> &rem);
 };

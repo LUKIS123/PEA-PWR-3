@@ -166,10 +166,32 @@ void AppController::readPathAndDisplayCalculatedCost() {
     }
 
     if (pathVector.empty() || pathVector.size() != matrix->getSize() + 1) {
-        std::cout << "Wrong input! Cannot calculate cost" << std::endl;
+        std::cout << "Wrong input or matrix empty! Cannot calculate cost" << std::endl;
         system("PAUSE");
         return;
     }
+
+    /// Valid permutation check
+    auto path = std::list<int>(pathVector.begin(), pathVector.end());
+    path.sort();
+    std::list<int> check(matrix->getSize());
+    std::iota(std::begin(check), std::end(check), 0);
+    check.push_back(pathVector.front());
+    check.sort();
+    if (check != path) {
+        int idx = 0;
+        auto itr = path.begin();
+        std::cout << "ERROR" << std::endl;
+        for (const auto &item: check) {
+            if (item != *itr) {
+                std::cout << "ERROR AT: " << idx << std::endl;
+            }
+            ++idx;
+            ++itr;
+        }
+        std::cout << std::endl;
+    }
+    /// Valid permutation check
 
     matrix->calculatePathCost(pathVector);
     system("PAUSE");
