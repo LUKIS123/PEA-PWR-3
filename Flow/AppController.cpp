@@ -338,10 +338,6 @@ void AppController::testGeneticAlgorithm(bool crossMethod) {
 
     int iter = 1;
     std::vector<int> sizes = {100, 250, 600};
-    testCrossoverMethod = CrossMethod::EX;
-
-    timeoutSeconds = 480;
-    testNumber = 5;
 
     geneticAlgorithm->testing = true;
     long long int start, end;

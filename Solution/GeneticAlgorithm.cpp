@@ -32,6 +32,7 @@ void GeneticAlgorithm::displayLatestResults() {
     std::cout << "Best Cost: " << bestCost << std::endl;
 }
 
+// Funkcja służąca inicjalizacji zmiennych algorytmu genetycznego
 void
 GeneticAlgorithm::mainFun(int **matrix, int matrixSize, int populationSize, double mutationFactor, double crossFactor,
                           long long int startQPC, int timeout, bool isRandomInit, CrossMethod method) {
@@ -53,11 +54,13 @@ GeneticAlgorithm::mainFun(int **matrix, int matrixSize, int populationSize, doub
     matingPoolSize = ceil(populationSize * crossFactor);
     matingPool.reserve(matingPoolSize);
 
+    // Ilość osobników bioroących udział w pojedynczym turnieju
     tournamentParticipants = ceil(sqrt(populationSize) / 2);
     if (tournamentParticipants < 3) {
         tournamentParticipants = 3;
     }
 
+    // Ustawienie ilości elity według współczynnika krzyżowania
     eliteFactor = 1.0 - crossFactor;
     eliteCount = ceil(populationSize * eliteFactor);
 
@@ -105,7 +108,7 @@ void GeneticAlgorithm::solveTSP() {
                     solutionProgressionPoints.push_back(currentPopulation[j].pathCost);
                 }
             }
-
+            // Elita kopiowana do osobnej struktury
             if (currentElite.size() < eliteCount || currentPopulation[j].pathCost <= currentElite.back().pathCost) {
                 currentElite.push_front(currentPopulation[j]);
                 if (currentElite.size() > eliteCount) {
@@ -218,6 +221,7 @@ void GeneticAlgorithm::initializePopulation() {
     }
 }
 
+// Funkcja służąca inicjalizacji populacji startowej osobnikami z ścieżkami losowymi
 void GeneticAlgorithm::initializePopulationWithRandomPaths() {
     std::random_device rdev;
     std::mt19937 gen(rdev());
@@ -247,6 +251,7 @@ void GeneticAlgorithm::initializePopulationWithRandomPaths() {
     }
 }
 
+// Funkcja służąca selekcji turniejowej
 std::pair<GASubject, GASubject>
 GeneticAlgorithm::tournamentSelection(std::uniform_int_distribution<> &distInt, std::mt19937 &device) {
     int randomIndex = distInt(device);
@@ -280,6 +285,7 @@ GeneticAlgorithm::tournamentSelection(std::uniform_int_distribution<> &distInt, 
     return std::make_pair(a, b);
 }
 
+// Funkcja służąca do krzyżowania osobników
 std::pair<GASubject, GASubject> GeneticAlgorithm::crossSubjects(GASubject &first, GASubject &second) const {
     std::pair<std::vector<int>, std::vector<int>> descendants;
     if (crossoverMethod == CrossMethod::OX) {
@@ -293,6 +299,7 @@ std::pair<GASubject, GASubject> GeneticAlgorithm::crossSubjects(GASubject &first
     return std::make_pair(subject1, subject2);
 }
 
+// Funkcja odpowiadająca za mutacje
 void GeneticAlgorithm::mutate(GASubject &subject) const {
     subject.path.pop_back();
     int v1 = RandomDataGenerator::generateRandomIntInRange(0, matrixSize - 1);
